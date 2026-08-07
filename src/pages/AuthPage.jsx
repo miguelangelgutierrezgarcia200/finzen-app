@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export const AuthPage = () => {
@@ -8,6 +9,7 @@ export const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const { login, register, loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,8 +22,18 @@ export const AuthPage = () => {
         await login(email, password);
         toast.success("Sesión iniciada");
       }
+      navigate("/"); // Redirige al Dashboard
     } catch (err) {
       toast.error(err.message || "Error al autenticar");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      navigate("/"); // Redirige al Dashboard
+    } catch (e) {
+      toast.error(e.message);
     }
   };
 
@@ -62,7 +74,7 @@ export const AuthPage = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-brand-card border border-brand-taupe/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-jade"
-                placeholder="Miguel Gutiérrez"
+                placeholder="Nombre completo"
               />
             </div>
           )}
@@ -101,7 +113,7 @@ export const AuthPage = () => {
         </div>
 
         <button
-          onClick={() => loginWithGoogle().catch(e => toast.error(e.message))}
+          onClick={handleGoogleLogin}
           className="w-full bg-brand-card border border-brand-taupe/30 text-brand-cream font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-brand-taupe/10 transition-colors"
         >
           Google
