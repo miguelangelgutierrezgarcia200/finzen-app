@@ -15,19 +15,34 @@ export const DashboardPage = () => {
   useEffect(() => {
     if (!user?.uid) return;
 
-    // Escuchar ingresos en tiempo real
-    const qIncomes = query(collection(db, "incomes"), where("userId", "==", user.uid));
-    const unsubIncomes = onSnapshot(qIncomes, (snapshot) => {
-      const incomeSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
-      setTotalIncome(incomeSum);
-    });
+    let unsubIncomes = () => {};
+    let unsubExpenses = () => {};
 
-    // Escuchar gastos en tiempo real
-    const qExpenses = query(collection(db, "expenses"), where("userId", "==", user.uid));
-    const unsubExpenses = onSnapshot(qExpenses, (snapshot) => {
-      const expenseSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
-      setTotalExpenses(expenseSum);
-    });
+    try {
+      // Escuchar ingresos
+      const qIncomes = query(collection(db, "incomes"), where("userId", "==", user.uid));
+      unsubIncomes = onSnapshot(
+        qIncomes,
+        (snapshot) => {
+          const incomeSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
+          setTotalIncome(incomeSum);
+        },
+        (error) => console.warn("Error leyendo ingresos:", error)
+      );
+
+      // Escuchar gastos
+      const qExpenses = query(collection(db, "expenses"), where("userId", "==", user.uid));
+      unsubExpenses = onSnapshot(
+        qExpenses,
+        (snapshot) => {
+          const expenseSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
+          setTotalExpenses(expenseSum);
+        },
+        (error) => console.warn("Error leyendo gastos:", error)
+      );
+    } catch (err) {
+      console.error("Error al suscribir listeners de Firestore:", err);
+    }
 
     return () => {
       unsubIncomes();
@@ -35,18 +50,19 @@ export const DashboardPage = () => {
     };
   }, [user]);
 
-  // Cálculo de la regla 50/20/30 sobre los ingresos reales (o base si aún está en 0)
   const baseIncome = totalIncome > 0 ? totalIncome : 1000000;
-  const needs = baseIncome * 0.50;
-  const savings = baseIncome * 0.20;
-  const wants = baseIncome * 0.30;
+  const needs = baseIncome * 0.5;
+  const savings = baseIncome * 0.2;
+  const wants = baseIncome * 0.3;
 
   return (
     <div className="space-y-5 pb-24">
       <div className="bg-gradient-to-br from-brand-wine to-brand-gold p-6 rounded-3xl relative overflow-hidden shadow-xl">
         <div className="relative z-10">
           <span className="text-xs text-white/80 font-bold uppercase tracking-wider">Panel Principal</span>
-          <h2 className="text-2xl font-black text-white mt-1">¡Hola, {user?.name?.split(" ")[0] || "Usuario"}! 👋</h2>
+          <h2 className="text-2xl font-black text-white mt-1">
+            ¡Hola, {user?.name ? user.name.split(" ")[0] : "Usuario"}! 👋
+          </h2>
           <p className="text-xs text-white/90 mt-2 max-w-[240px]">
             Revisa tu presupuesto sugerido según la regla 50/20/30 hoy.
           </p>
