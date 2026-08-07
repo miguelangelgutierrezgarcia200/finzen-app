@@ -28,23 +28,34 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const userRef = doc(db, "users", firebaseUser.uid);
-    const userSnap = await getDoc(userRef);
+    try {
+      const userRef = doc(db, "users", firebaseUser.uid);
+      const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
-      const newUser = {
+      if (!userSnap.exists()) {
+        const newUser = {
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName || firebaseUser.email.split("@")[0],
+          email: firebaseUser.email,
+          createdAt: new Date().toISOString(),
+          settings: { darkMode: true }
+        };
+        await setDoc(userRef, newUser);
+        setUser(newUser);
+      } else {
+        setUser(userSnap.data());
+      }
+    } catch (error) {
+      console.warn("Error al sincronizar datos de Firestore:", error);
+      // Fallback para evitar que la interfaz se congele si falla la red
+      setUser({
         uid: firebaseUser.uid,
-        name: firebaseUser.displayName || firebaseUser.email.split("@")[0],
+        name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuario",
         email: firebaseUser.email,
-        createdAt: new Date().toISOString(),
-        settings: { darkMode: true }
-      };
-      await setDoc(userRef, newUser);
-      setUser(newUser);
-    } else {
-      setUser(userSnap.data());
+      });
+    } finally {
+      setLoading(false); // Garantiza que la app siempre renderice la interfaz
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -65,7 +76,11 @@ export const AuthProvider = ({ children }) => {
       email,
       createdAt: new Date().toISOString()
     };
-    await setDoc(userRef, newUser);
+    try {
+      await setDoc(userRef, newUser);
+    } catch (e) {
+      console.warn("No se pudo guardar el documento inicial:", e);
+    }
     setUser(newUser);
   };
 
