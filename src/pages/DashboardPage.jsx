@@ -11,6 +11,7 @@ export const DashboardPage = () => {
   const { user } = useAuth();
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -26,8 +27,12 @@ export const DashboardPage = () => {
         (snapshot) => {
           const incomeSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data()?.amount) || 0), 0);
           setTotalIncome(incomeSum);
+          setIsOffline(false);
         },
-        (error) => console.warn("Error leyendo ingresos:", error)
+        (error) => {
+          console.warn("Error o modo offline en ingresos:", error);
+          setIsOffline(true);
+        }
       );
 
       // Escuchar gastos en tiempo real
@@ -37,11 +42,16 @@ export const DashboardPage = () => {
         (snapshot) => {
           const expenseSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data()?.amount) || 0), 0);
           setTotalExpenses(expenseSum);
+          setIsOffline(false);
         },
-        (error) => console.warn("Error leyendo gastos:", error)
+        (error) => {
+          console.warn("Error o modo offline en gastos:", error);
+          setIsOffline(true);
+        }
       );
     } catch (err) {
       console.error("Error al suscribir listeners de Firestore:", err);
+      setIsOffline(true);
     }
 
     return () => {
@@ -57,6 +67,13 @@ export const DashboardPage = () => {
 
   return (
     <div className="space-y-5 pb-24">
+      {/* Alerta sin conexión */}
+      {isOffline && (
+        <div className="p-3 text-xs bg-amber-900/40 border border-amber-600/40 text-amber-200 rounded-2xl">
+          Modo sin conexión activo. Mostrando datos locales almacenados.
+        </div>
+      )}
+
       <div className="bg-gradient-to-br from-brand-wine to-brand-gold p-6 rounded-3xl relative overflow-hidden shadow-xl">
         <div className="relative z-10">
           <span className="text-xs text-white/80 font-bold uppercase tracking-wider">Panel Principal</span>

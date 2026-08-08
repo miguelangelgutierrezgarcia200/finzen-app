@@ -1,26 +1,102 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
-import { Navbar } from "../components/common/Navbar";
+import { Outlet, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  Calculator, 
+  GraduationCap, 
+  Gamepad2, 
+  User, 
+  LogOut 
+} from "lucide-react";
 
-export const AppLayout = () => {
+// Lista con todas las pestañas de navegación requeridas
+const navItems = [
+  { name: "Inicio", path: "/", icon: LayoutDashboard },
+  { name: "Gestor de datos", path: "/expenses", icon: Wallet },
+  { name: "Calculadora", path: "/calculators", icon: Calculator },
+  { name: "Academia", path: "/academy", icon: GraduationCap },
+  { name: "Juegos", path: "/game", icon: Gamepad2 },
+  { name: "Perfil", path: "/profile", icon: User },
+];
+
+export function AppLayout() {
+  const { user, logout } = useAuth();
+
   return (
-    <div className="min-h-screen bg-brand-bg text-brand-cream max-w-md mx-auto relative flex flex-col">
-      <header className="sticky top-0 z-40 bg-brand-card/80 backdrop-blur-md px-5 py-4 border-b border-brand-taupe/10 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-tr from-brand-jade to-brand-gold rounded-xl flex items-center justify-center font-black text-brand-ink text-sm">
-            F
-          </div>
-          <span className="font-black text-lg bg-gradient-to-r from-brand-jade to-brand-gold bg-clip-text text-transparent">
+    <div style={{ display: "flex", minHeight: "100vh", background: "#120C0A", color: "#F7E9DA" }}>
+      {/* Sidebar / Barra lateral */}
+      <aside style={{ width: "260px", background: "#1A120E", borderRight: "1px solid #251A14", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "1.5rem" }}>
+        <div>
+          {/* Título de la App */}
+          <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "2rem", color: "#F7E9DA" }}>
             FinZen
-          </span>
-        </div>
-      </header>
+          </h2>
 
-      <main className="flex-1 px-4 pt-4">
+          {/* Menú de enlaces */}
+          <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === "/"}
+                  style={({ isActive }) => ({
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "0.5rem",
+                    textDecoration: "none",
+                    fontWeight: "500",
+                    transition: "all 0.2s ease",
+                    background: isActive ? "#251A14" : "transparent",
+                    color: isActive ? "#F7E9DA" : "#A39382",
+                    borderLeft: isActive ? "3px solid #E58D35" : "3px solid transparent",
+                  })}
+                >
+                  <Icon size={20} />
+                  <span>{item.name}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Usuario y Botón de Cerrar Sesión */}
+        <div style={{ paddingTop: "1rem", borderTop: "1px solid #251A14" }}>
+          <div style={{ fontSize: "0.85rem", color: "#A39382", marginBottom: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {user?.email}
+          </div>
+          <button
+            onClick={logout}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "transparent",
+              border: "none",
+              borderRadius: "0.5rem",
+              color: "#E55353",
+              cursor: "pointer",
+              fontWeight: "500",
+              textAlign: "left"
+            }}
+          >
+            <LogOut size={20} />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Área principal donde se renderizan las páginas */}
+      <main style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
         <Outlet />
       </main>
-
-      <Navbar />
     </div>
   );
-};
+}
