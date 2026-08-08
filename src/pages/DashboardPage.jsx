@@ -19,23 +19,23 @@ export const DashboardPage = () => {
     let unsubExpenses = () => {};
 
     try {
-      // Escuchar ingresos
+      // Escuchar ingresos en tiempo real
       const qIncomes = query(collection(db, "incomes"), where("userId", "==", user.uid));
       unsubIncomes = onSnapshot(
         qIncomes,
         (snapshot) => {
-          const incomeSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
+          const incomeSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data()?.amount) || 0), 0);
           setTotalIncome(incomeSum);
         },
         (error) => console.warn("Error leyendo ingresos:", error)
       );
 
-      // Escuchar gastos
+      // Escuchar gastos en tiempo real
       const qExpenses = query(collection(db, "expenses"), where("userId", "==", user.uid));
       unsubExpenses = onSnapshot(
         qExpenses,
         (snapshot) => {
-          const expenseSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
+          const expenseSum = snapshot.docs.reduce((acc, doc) => acc + (Number(doc.data()?.amount) || 0), 0);
           setTotalExpenses(expenseSum);
         },
         (error) => console.warn("Error leyendo gastos:", error)

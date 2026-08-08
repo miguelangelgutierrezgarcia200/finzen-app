@@ -7,6 +7,8 @@ import { AuthPage } from "./pages/AuthPage";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { CalculatorPage } from "./pages/CalculatorPage";
+import { ExpensesPage } from "./pages/ExpensesPage";
+import { AcademyPage } from "./pages/AcademyPage";
 
 // Protege las rutas privadas (si no hay sesión, manda a /auth)
 const ProtectedRoute = ({ children }) => {
@@ -45,8 +47,8 @@ export default function App() {
           }>
             <Route index element={<DashboardPage />} />
             <Route path="calculators" element={<CalculatorPage />} />
-            <Route path="expenses" element={<DashboardPage />} />
-            <Route path="academy" element={<DashboardPage />} />
+            <Route path="expenses" element={<ExpensesPage />} />
+            <Route path="academy" element={<AcademyPage />} />
             <Route path="game" element={<DashboardPage />} />
             <Route path="profile" element={<DashboardPage />} />
           </Route>

@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       if (!userSnap.exists()) {
         const newUser = {
           uid: firebaseUser.uid,
-          name: firebaseUser.displayName || firebaseUser.email.split("@")[0],
+          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuario",
           email: firebaseUser.email,
           createdAt: new Date().toISOString(),
           settings: { darkMode: true }
@@ -46,15 +46,14 @@ export const AuthProvider = ({ children }) => {
         setUser(userSnap.data());
       }
     } catch (error) {
-      console.warn("Error al sincronizar datos de Firestore:", error);
-      // Fallback para evitar que la interfaz se congele si falla la red
+      console.warn("Error al sincronizar datos de Firestore (Modo Fallback):", error);
       setUser({
         uid: firebaseUser.uid,
         name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuario",
         email: firebaseUser.email,
       });
     } finally {
-      setLoading(false); // Garantiza que la app siempre renderice la interfaz
+      setLoading(false);
     }
   };
 
@@ -66,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-  
+
   const register = async (email, password, name) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const userRef = doc(db, "users", res.user.uid);
@@ -79,9 +78,8 @@ export const AuthProvider = ({ children }) => {
     try {
       await setDoc(userRef, newUser);
     } catch (e) {
-      console.warn("No se pudo guardar el documento inicial:", e);
+      console.warn("No se pudo guardar el perfil inicial en Firestore:", e);
     }
-    setUser(newUser);
   };
 
   const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
@@ -90,7 +88,13 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
-      {!loading && children}
+      {loading ? (
+        <div className="min-h-screen bg-[#131118] flex items-center justify-center text-brand-gold font-bold text-sm">
+          Cargando FinZen...
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };
